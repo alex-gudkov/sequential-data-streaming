@@ -20,23 +20,15 @@ const execute = async () => {
     quote: '"',
     objectMode: true,
     strictColumnHandling: true,
+    headers: true, // skip first line with header
   });
 
   fileStream.pipe(parserStream);
 
   const BATCH_SIZE = 1_000;
-
-  let isReadHeader = true;
   let rows = [];
 
   parserStream.on('data', async (chunk) => {
-    // skip first line with header
-    if (isReadHeader) {
-      isReadHeader = false;
-
-      return;
-    }
-
     // collect batch
     rows.push(chunk);
 
