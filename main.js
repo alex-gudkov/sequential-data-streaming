@@ -3,16 +3,17 @@ import fastCsv from 'fast-csv';
 
 const resultData = [];
 
-const processAndInsertData = async (rows) => {
+async function processAndInsertData(rows) {
   await new Promise((resolve, reject) => {
     setTimeout(() => {
       resultData.push(...rows);
+
       resolve('');
     }, 1000);
   });
-};
+}
 
-const execute = async () => {
+async function execute() {
   const fileStream = fs.createReadStream('./4050-users.csv');
 
   const parserStream = fastCsv.parse({
@@ -20,39 +21,35 @@ const execute = async () => {
     quote: '"',
     objectMode: true,
     strictColumnHandling: true,
-    headers: true, // skip first line with header
-  });
-
-  fileStream.pipe(parserStream);
-
-  const BATCH_SIZE = 1_000;
-  let rows = [];
-
-  parserStream.on('data', async (chunk) => {
-    // collect batch
-    rows.push(chunk);
-
-    // process full batch
-    if (rows.length === BATCH_SIZE) {
-      console.log(rows.length);
-
-      const rowsCopy = rows.slice(0, rows.length);
-
-      rows = [];
-
-      await processAndInsertData(rowsCopy);
-    }
+    headers: true,
   });
 
   await new Promise((resolve, reject) => {
+    const BATCH_SIZE = 1_000;
+    const rows = [];
+
+    fileStream.pipe(parserStream);
+
+    parserStream.on('data', async (chunk) => {
+      // collect batch
+      rows.push(chunk);
+
+      // process full batch
+      if (rows.length === BATCH_SIZE) {
+        console.log(rows.length);
+
+        const rowsCopy = rows.splice(0, rows.length);
+
+        await processAndInsertData(rowsCopy);
+      }
+    });
+
     // process rest of batch
     parserStream.on('end', async () => {
       if (rows.length) {
         console.log(rows.length);
 
-        const rowsCopy = rows.slice(0, rows.length);
-
-        rows = [];
+        const rowsCopy = rows.splice(0, rows.length);
 
         await processAndInsertData(rowsCopy);
       }
@@ -60,10 +57,12 @@ const execute = async () => {
       resolve();
     });
   });
-};
+}
 
-(async () => {
+async function main() {
   await execute();
 
   console.log({ resultDataLength: resultData.length });
-})();
+}
+
+main();
