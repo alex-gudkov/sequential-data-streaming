@@ -36,22 +36,30 @@ async function execute() {
 
       // process full batch
       if (rows.length === BATCH_SIZE) {
+        parserStream.pause();
+
         console.log(rows.length);
 
         const rowsCopy = rows.splice(0, rows.length);
 
         await processAndInsertData(rowsCopy);
+
+        parserStream.resume();
       }
     });
 
     // process rest of batch
     parserStream.on('end', async () => {
       if (rows.length) {
+        parserStream.pause();
+
         console.log(rows.length);
 
         const rowsCopy = rows.splice(0, rows.length);
 
         await processAndInsertData(rowsCopy);
+
+        parserStream.resume();
       }
 
       resolve();
