@@ -44,9 +44,11 @@ const execute = async () => {
     if (rows.length === BATCH_SIZE) {
       console.log(rows.length);
 
-      await processAndInsertData(rows);
+      const rowsCopy = rows.slice(0, rows.length);
 
       rows = [];
+
+      await processAndInsertData(rowsCopy);
     }
   });
 
@@ -56,9 +58,11 @@ const execute = async () => {
       if (rows.length) {
         console.log(rows.length);
 
-        await processAndInsertData(rows);
+        const rowsCopy = rows.slice(0, rows.length);
 
         rows = [];
+
+        await processAndInsertData(rowsCopy);
       }
 
       resolve();
