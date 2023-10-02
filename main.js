@@ -48,8 +48,8 @@ async function execute() {
       }
     });
 
-    // process rest of batch
     parserStream.on('end', async () => {
+      // process rest of batch
       if (rows.length) {
         parserStream.pause();
 
